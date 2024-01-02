@@ -4,7 +4,6 @@ import "dotenv/config"
 const shouldAnalyseBundle = process.env.ANALYSE_BUNDLE
 
 const config: GatsbyConfig = {
-  pathPrefix: "/fmowl10.github.io",
   siteMetadata: {
     // You can overwrite values here that are used for the SEO component
     // You can also add new values here to query them like usual
@@ -13,7 +12,7 @@ const config: GatsbyConfig = {
     siteTitleAlt: `Fmowl Blog`,
     siteHeadline: `Fmowl Blog`,
     siteUrl: `https://blog.fmowl.com`,
-    siteDescription: `upload posts about ITdevelopment and resume`,
+    siteDescription: `upload posts about IT development and resume`,
     siteLanguage: `ko`,
     author: `fmowl10`,
   },
