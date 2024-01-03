@@ -6,7 +6,6 @@ tags:
 ---
 ## 도입기
 이력서 작성 및 공개를 위해서 github pages 기능을 이용하기로 했다. 간단하게 jekyll을 이용하려 했으나 지인의 의견으로 gatsby를 사용하기로 하였다.
-markdown을 이용하여 작성을 하고 배포했기에 전문성이 떨어진다는 충고였다.
 
 ## 목표
 * markdown으로 글을 작성할 수 있을 것
@@ -21,15 +20,145 @@ mermaid라는 다이어그램 그려주는 언어는 Github에서 지원하고, 
 
 ### gatsby 설치
 
+먼저 nodejs와 npm을 설치한다. nvm를 설치하여 버전관리하기 보다 간단하게 apt를 통해 설치한다.
+
+```shell
+sudo apt install nodejs npm
+sudo npm install -g gatsby-cli
+```
+
 ### gatsby-starter-minimal-blog 템플릿 클론 및 수정
 
+```shell
+npx gatsby new [blog name] https://github.com/LekoArts/gatsby-starter-minimal-blog
+```
+
+모든 이미지 및 아이콘 파일은 static 폴더에 위치해 있으니 파일을 추가하고 gatsby-config.ts에서 수정하여 적용하면된다.
+
+```typescript title=gatsby-config.ts 
+const config: GatsbyConfig = {
+    siteMetadata: {
+       // 블로그 관련 정보 수정 할 곳 
+    }
+```
+
+저자, 사이트 제목, 사이트 주소, 설명등을 이곳에서 수정하면된다.
+
+    
+```typescript title=gatsby-config.ts 
+    plugins: [
+        {
+            resolve: `@lekoarts/gatsby-theme-minimal-blog`,
+            options: {
+                // 페이지 네비게이션 추가
+                navigation: [
+                    {
+                        title: `Blog`,
+                        slug: `/blog`,
+                    }, 
+                    // 중략
+                ],
+                externalLinks: [
+                    {
+                        name: `Github`,
+                        url: `[url]`,
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+이곳에서 블로그의 네비게이션을 추가할 수 있다.
+연결되는 page는 content/pages에서 페이지 이름으로 디렉토리를 생성하고 내부에 index.mdx를 추가하여 작성하면된다.
+slug는 path 정도로 보면된다.
+
+```typescript
+{name: ``, url:``}
+```
+외부 링크를 추가하고 싶으면 externalLinks에 아래와 같이 추가 하면된다.
+
+```typescript title=gatsby-config.ts
+    {
+      resolve: `gatsby-plugin-manifest`,
+      options: {
+        name: `fmowl blog`,
+        short_name: `fmowl blog`,
+        description: `upload posts about ITdevelopment and resume`,
+        start_url: `/`,
+        background_color: `#fff`,
+        // This will impact how browsers show your PWA/website
+        // https://css-tricks.com/meta-theme-color-and-trickery/
+        // theme_color: `#6B46C1`,
+        display: `standalone`,
+        icons: [
+        ],
+      },
+```
+이곳에서 바꿀 내용은 name, short_name, description 정도이다. 원하는 내용으로 수정하자
+이곳에서 아이콘을 설정할 수 있다.
+
 ### mermaid 수정
+다이어그램을 그릴 때 사용되는 mermaid를 블로그에서 따로 이미지 변환 과정 없이 바로 미리보기가 가능하면 관리가 편할 것으로 예상이되어 추가를 시도하였다.
+그러나 플러그인의 문서를 확인하고 추가했으나 작동을 하지 않아 실패하였다.
+
+시도한 플러그인
+[gatsby-remark-mermaid](https://www.gatsbyjs.com/plugins/gatsby-remark-mermaid/)
 
 ### github action으로 배포
 
+글 수정 및 추가는 draft 브랜치에서 하였다.
+draft에서 main으로 머지될 때 github action를 통한 페이지 빌드하고, gh-pages 브랜치에 배포하도록 하였다.
+github pages는 gh-pages브랜치를 통해 페이지를 배포하도록 저장소 설정을 하였다.
+
+github action은 [Gatsby Publish](https://github.com/marketplace/actions/gatsby-publish)을 이용하여 workflow을 작성하였다.
+제공된 example을 참고하여 main에 push 될 때마다 빌드하도록 만들고 token을 GITHUB_TOKEN을 사용하도록 하였다.
+GITHUB_TOKEN을 사용하게 만드는 부분은 지원하지 않아 [Support secrets.GITHUB_TOKEN #27](https://github.com/enriikke/gatsby-gh-pages-action/issues/27)을 참고하여 수정하였다.
+
+```yaml title=blog-deploy.yaml
+name: Gatsby Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: enriikke/gatsby-gh-pages-action@v2
+        with:
+          access-token: x-access-token:${{ secrets.GITHUB_TOKEN }}
+          deploy-branch: gh-pages
+          gatsby-args: --prefix-paths
+```
+수정된 workflow은 이렇다.
+
+블로그를 CNAME을 통해 연결 했기에 static폴더에 CNAME이라는 파일을 만들고 내용을 "blog.fmowl.com"으로 채웠다. 이렇게 되면 배포시 CNAME파일도 같이 배포된다.
+
 ### tistory 글 이전
+
+이전에 작성하였던 tistory의 글을 모두 가져와 markdown으로 수정하는 과정을 하였다.
+content/posts에 글제목으로 디렉토리를 생성하고 index.mdx파일을 생성하여 블로그 글을 작성하면된다.
+
+```mdx title="/content/posts/2021년 인턴 회고/index.mdx"
+---
+title: 2021년 인턴 회고
+date: 2022-12-16
+tags:
+    - development
+    - job
+---
+```
+위처럼 title, date, tags를 의무적으로 작성하고 아래는 markdown 문법을 지키며 글을 작성하면된다.
+date의 포멧은 YYYY-MM-DD이다. 시간을 설정할 수 없어 하루에 많은 글을 작성한다면 시간 순서대로 나열되지 않아 아쉬울 수 있다.
+tags는 여러 태그를 작성할 때 위의 예시 처럼 작성해 주면 된다.
 
 
 ## 이후 목표
 
-### 댓글 기능
+추후 블로그에 댓글 기능을 추가하여 수정할 점이나 논의할 점을 공유하고 싶다.
+아마도 나중에 추가가 될듯하다.
