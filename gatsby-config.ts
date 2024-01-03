@@ -28,6 +28,10 @@ const config: GatsbyConfig = {
             slug: `/blog`,
           },
           {
+            title: `Tags`,
+            slug: `/tags`,
+          },
+          {
             title: `Resume`,
             slug: `/resume`,
           },
